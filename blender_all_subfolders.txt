@@ -1,0 +1,47 @@
+import os 
+import bpy 
+
+folder_path = "C:/Users/nejo/NinjaRipper/_NinjaRipper_temp" 
+export_dir = "C:/Users/nejo/NinjaRipper/obj" 
+rotate_object_by_90 = False 
+
+bpy.context.scene.vs.export_format = "SMD" 
+bpy.context.scene.vs.up_axis = "Z" 
+
+for dirpath, dirnames, filenames in os.walk(folder_path): 
+    print("dirnames", dirnames) 
+    for dirname in dirnames: 
+        if dirname.startswith("2022"): 
+            print("dirname", os.path.basename(dirpath)) 
+            subfolder_path = os.path.join(dirpath, dirname) 
+            for file in os.listdir(subfolder_path): 
+                if file.endswith(".rip"): 
+                    print(file) 
+                    bpy.ops.import_scene.rip(filepath=subfolder_path+"/"+file,importall=False,semantic_setting="MANUAL") 
+                    
+                    if rotate_object_by_90: 
+                        # Enter edit mode
+                        bpy.ops.object.mode_set(mode='EDIT')
+
+                        # Select all vertices
+                        bpy.ops.mesh.select_all(action='SELECT')
+
+                        # Rotate the mesh 90 degrees on Y axis
+                        bpy.ops.transform.rotate(value=-1.5708, orient_axis='Z')
+
+                        # Exit edit mode
+                        bpy.ops.object.mode_set(mode='OBJECT')
+                    
+                    export_maindir = "C:/Users/nejo/NinjaRipper/obj" 
+                    export_subdir = export_maindir + "/" + os.path.basename(dirpath) 
+                    export_name = export_subdir + "/" + file + ".obj" 
+					
+                    if not os.path.exists(export_subdir): 
+                        os.mkdir(export_subdir) 
+                    
+                    bpy.context.scene.vs.export_path = export_subdir 
+                    bpy.ops.export_scene.smd(export_scene=True) 
+                    if os.path.exists(export_subdir + "/Collection.smd"): 
+                        os.rename(export_subdir + "/Collection.smd", export_subdir + "/" + file + ".smd") 
+                    bpy.ops.object.select_all(action='SELECT') 
+                    bpy.ops.object.delete() 
